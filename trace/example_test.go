@@ -3,21 +3,21 @@ package trace_test
 import "github.com/wx-satellite/gopkg/trace"
 
 func f1() {
-	defer trace.Apply()()
+	defer trace.Do()()
 	f2()
 }
 
 func f2() {
-	defer trace.Apply()()
+	defer trace.Do()()
 	f3()
 }
 
 func f3() {
-	defer trace.Apply()()
+	defer trace.Do()()
 }
 
 
-func ExampleTrace() {
+func ExampleDo() {
 	f1()
 	// Output:
 	// g[00001]:    ->github.com/wx-satellite/gopkg/trace_test.f1
