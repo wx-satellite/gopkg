@@ -2,6 +2,6 @@ package generator
 
 
 type Generator interface {
-	Generate(string)([]byte,error)
+	Generate(file string)([]byte,error)
 
 }
