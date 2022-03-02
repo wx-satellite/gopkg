@@ -38,7 +38,7 @@ func printTrace(id uint64, name, arrow string, indent int) {
 var mu sync.Mutex
 var m = make(map[uint64]int)
 
-func Trace() func() {
+func Apply() func() {
 	pc, _, _, ok := runtime.Caller(1)
 	if !ok {
 		panic("not found caller")
