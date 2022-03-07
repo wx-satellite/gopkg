@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -67,4 +68,14 @@ func TestFuncDel(t *testing.T) {
 	fSet := token.NewFileSet()
 	f,_ := parser.ParseFile(fSet, "", src,parser.ParseComments)
 	ast.Print(fSet,f)
+}
+
+
+func TestNew(t *testing.T) {
+	generator := New("github.com/wx-satellite/gopkg/trace","trace","Do")
+
+	res,err := generator.Generate("./helper.go")
+
+	fmt.Println(string(res))
+	fmt.Println(err)
 }
