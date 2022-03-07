@@ -1,8 +1,10 @@
 package ast
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
+	"go/format"
 	"go/parser"
 	"go/token"
 	"golang.org/x/tools/go/ast/astutil"
@@ -44,8 +46,41 @@ func (g *generator) addDeferTraceIntoFuncDecls(f *ast.File) {
 }
 
 // addDeferStmt 向函数声明中追加defer语句
-func (g *generator)addDeferStmt(fd *ast.FuncDecl) {
+func (g *generator)addDeferStmt(fd *ast.FuncDecl)bool {
+	stmts := fd.Body.List
+	for _, stmt := range stmts {
+		ds,ok:= stmt.(*ast.DeferStmt)
+		if !ok {
+			continue
+		}
+		s,ok := ds.Call.Fun.(*ast.SelectorExpr)
+		if !ok {
+			continue
+		}
 
+		x,ok := s.X.(*ast.Ident)
+		if !ok {
+			continue
+		}
+
+		// 已经存在
+		if x.Name == g.packName && s.Sel.Name == g.funcName {
+			return false
+		}
+	}
+
+	// 不存在，则插入
+	ds := &ast.DeferStmt{
+		Call: &ast.CallExpr{Fun: &ast.SelectorExpr{
+			X: &ast.Ident{Name: g.packName},
+			Sel: &ast.Ident{Name: g.funcName},
+		}},
+	}
+	newList := make([]ast.Stmt, len(stmts)+1)
+	copy(newList[1:], stmts)
+	newList[0] = ds
+	fd.Body.List = newList
+	return true
 }
 
 func (g *generator) Generate(filename string)(bs []byte,err error) {
@@ -66,5 +101,10 @@ func (g *generator) Generate(filename string)(bs []byte,err error) {
 	// 增加 defer trace.Do()()
 	g.addDeferTraceIntoFuncDecls(currentAst)
 
-	return
+	buf := &bytes.Buffer{}
+	err = format.Node(buf, fSet,currentAst)
+	if err != nil {
+		return nil, fmt.Errorf("error formatting new code: %w", err)
+	}
+	return buf.Bytes(), nil
 }

@@ -1,12 +1,22 @@
+package ast
+
+import (
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"testing"
+)
+
+var src = `
+
 package main
 
 import (
 	"flag"
 	"fmt"
-	"github.com/wx-satellite/gopkg/trace/generator/ast"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+ ha "golang.org/x/tools/go/ast/astutil"
 )
 
 var (
@@ -14,6 +24,7 @@ var (
 )
 
 func init() {
+	defer ha.usage()
 	flag.BoolVar(&wrote,"w",false,"是否将结果写入源文件，默认是控制台")
 }
 
@@ -49,31 +60,11 @@ func main() {
 		return
 	}
 
-	generator := ast.New("github.com/wx-satellite/gopkg/trace","trace","Do")
 
-	res,err := generator.Generate(file)
-	if err != nil {
-		panic(err)
-	}
-
-	if len(res) ==0 {
-		fmt.Println("添加 trace 失败")
-		return
-	}
-
-	if !wrote {
-		fmt.Println(string(res))
-		return
-	}
-
-
-	// 写入源文件
-	if err = ioutil.WriteFile(file,res,0666); err != nil {
-		fmt.Println("写入文件失败")
-		return
-	}
-
-
-	fmt.Println("添加 trace 成功")
-
+}
+`
+func TestFuncDel(t *testing.T) {
+	fSet := token.NewFileSet()
+	f,_ := parser.ParseFile(fSet, "", src,parser.ParseComments)
+	ast.Print(fSet,f)
 }
